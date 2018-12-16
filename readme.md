@@ -2,6 +2,7 @@
 
 An open, cross platform, cross endian-ness data format for efficient writing and transfer of IoT observation data, with minimal dependencies and no need for dynamic memory usage.
 
+Note: Observations must have timestamps sorted chronologically (ascending).
 
 ## Data Types
 
@@ -26,21 +27,29 @@ sections        COS Section  // Observation data sections multiplied by "section
 0x1   <Reserved>
 0x2   <Reserved>
 0x4   <Reserved>
-0x8   Use multiple observation ids in section.
-0x10  Use 16-bit observation ids (if not set, use 8-bit observation ids).
-0x20  Use multiple timestamps in section.
-0x40  Use observation timestamps relative to section timestamp.
+0x8   <Reserved>
+0x10  <Reserved>
+0x20  Use multiple observation descriptors in section.
+0x40  Use multiple timestamps in section.
 0x80  Use int64 timestamps ("ticks"), if not set, assume uint32 timestamps ("unix time").
 
 ### COS Section
-section_descriptor  uint16           // Value encoded acording to "Section Descriptor" table below.
-timestamp           uint32 | int64   // Present only if header flag 0x20 is not set, data type depends on header flag 0x80.
-observation_id      uint8 | uint16   // Present only if header flag 0x8 is not set, data type depends on header flag 0x10.
-observations        COS Observation  // Repeated observations_count times
+observation_descr   Observation Descriptor  // Present only if flag 0x20 is not set.
+timestamp_abs       uint32 | int64          // Data type depends on header flag 0x80.
+observations_count  uint16                  // Number of observations in section.
+observations        COS Observation         // Repeated observations_count times
 
-#### Section Descriptor
-Bits 15-12: observations_type   // Numeric value according to "Observation Type" table below.
-Bits 11-0:  observations_count  // Number of observations in observation section (max 4096 observations per section).
+### COS Observation
+observation_descr  Observation Descriptor  // Present only if header flag 0x20 is set.
+timestamp_rel      uint16 | int64          // Present only if header flag 0x40 is set, data type depends on header flag 0x80.
+value              ObservationType         // Data type depends on "observation_descr" element "observations_type".
+
+#### Observation Descriptor
+
+Serialized as a 16 bit unsigned short.
+
+Bits 15-12: observation_type  // Numeric value according to "Observation Type" table below.
+Bits 11-0:  observation_id    // Observation identifier (max id: 4095).
 
 #### Observation Type
 1   boolean
@@ -51,15 +60,9 @@ Bits 11-0:  observations_count  // Number of observations in observation section
 6   uint16
 7   int8
 8   uint8
-9   position
-10  ascii string
-11  utf8 string
-
-### COS Observation
-timestamp_rel   uint16            // Present only if header flag 0x20 is set and 0x40 is set.
-timestamp_abs   uint32 | int64    // Present only if header flag 0x20 is set and 0x40 is not set, data type depends on header flag 0x80.
-observation_id  uint8 | uint16    // Present only if header flag 0x8 is set, data type depends on header flag 0x10.
-value           ObservationType   // Data type depends on "section_descriptor" element "observations_type".
+9   position 2d
+10  position 3d
+11  ascii string
 
 
 ## Examples of use
