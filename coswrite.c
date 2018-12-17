@@ -1,6 +1,28 @@
-// coswrite.c - Compact Observation Scheme serializer C implementation file
-// Revision: 2018-12-16
-// Copyright (C) 2018 Masterloop AS.
+/**
+ * @file  coswrite.c
+ * @date  2018-12-17
+ * @brief Compact Observation Scheme serializer C implementation file.
+ * 
+ * Copyright (C) 2018 Masterloop AS.
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE. 
+ */
 
 #include <memory.h>
 #include "cos.h"
@@ -10,11 +32,14 @@
 void bio_writer(void* bio_handle, unsigned char b)
 {
   struct coswrite_handle* cwh = (struct coswrite_handle*) bio_handle;
-  cwh->buffer[cwh->buffer_pos] = b;  // Append byte and increase buffer used counter.
-  if (cwh->buffer_pos == cwh->buffer_used)  // If at the end, append one more byte.
+
+  cwh->buffer[cwh->buffer_pos] = b;         // Append byte at buffer_pos position (allow re-writing of sections).
+
+  if (cwh->buffer_pos == cwh->buffer_used)  // If at the end, increase buffer_used with 1.
   {
     cwh->buffer_used++;
   }
+
   cwh->buffer_pos++;  // Advance writing position by one byte.
 }
 
@@ -31,8 +56,10 @@ void cos_write_header(struct coswrite_handle* cwh)
   binaryio_write_uint16(bio_writer, cwh, cwh->section_count);
 }
 
-void cos_create(struct coswrite_handle* cwh, unsigned char header_flags, void* buffer, unsigned int buffer_size)
+void cos_init(struct coswrite_handle* cwh, unsigned char header_flags, unsigned char* buffer, unsigned int buffer_size)
 {
+  memset(buffer, 0, buffer_size);
+
   cwh->header_flags = header_flags;
   cwh->buffer = buffer;
   cwh->buffer_size = buffer_size;
@@ -51,7 +78,7 @@ void cos_create(struct coswrite_handle* cwh, unsigned char header_flags, void* b
 
 void cos_write_current_section_header(struct coswrite_handle* cwh)
 {
-  if (cwh->header_flags & COS_HEADER_MULTI_OBSERVATIONS)
+  if ((cwh->header_flags & COS_HEADER_MULTI_OBSERVATIONS) == 0)
   {
     unsigned short obs_descr = get_observation_descriptor(cwh->section_observation_type, *(unsigned short*) cwh->section_observation_id);
     binaryio_write_uint16(bio_writer, cwh, obs_descr);
@@ -69,11 +96,18 @@ void cos_write_current_section_header(struct coswrite_handle* cwh)
   binaryio_write_uint16(bio_writer, cwh, cwh->section_observation_count);
 }
 
-void cos_begin_section(struct coswrite_handle* cwh, unsigned char observation_type, void* observation_id, void* timestamp)
+void cos_begin_section(struct coswrite_handle* cwh, void* observation_type, void* observation_id, void* timestamp)
 {
   cwh->section_count++;
   cwh->section_start = cwh->buffer_pos;
-  cwh->section_observation_type = observation_type;
+  if ((cwh->header_flags & COS_HEADER_MULTI_OBSERVATIONS) == 0)
+  {
+    cwh->section_observation_type = *(unsigned char*)observation_type;
+  }
+  else
+  {
+    cwh->section_observation_type = COS_OBS_TYPE_UNDEFINED;
+  }
   cwh->section_observation_count = 0;
   cwh->section_observation_id = observation_id;
   cwh->section_timestamp = timestamp;
@@ -83,13 +117,14 @@ void cos_begin_section(struct coswrite_handle* cwh, unsigned char observation_ty
 
 void cos_write_observation_value(struct coswrite_handle* cwh, unsigned observation_type, void* value)
 {
+  unsigned short l;
   switch (observation_type)
   {
     case COS_OBS_TYPE_BOOLEAN:
       binaryio_write_uint8(bio_writer, cwh, *(unsigned char*)value);
       break;
     case COS_OBS_TYPE_DOUBLE:
-      binaryio_write_endianness(bio_writer, cwh, value, 8);
+      binaryio_write_double(bio_writer, cwh, *(double*)value);
       break;
     case COS_OBS_TYPE_FLOAT:
       binaryio_write_float(bio_writer, cwh, *(float*)value);
@@ -119,16 +154,18 @@ void cos_write_observation_value(struct coswrite_handle* cwh, unsigned observati
       binaryio_write_float(bio_writer, cwh, *(&((float*)value)[2]));
       break;
     case COS_OBS_TYPE_ASCII:
-      binaryio_write_straight(bio_writer, cwh, (unsigned char*)value, strlen((char*)value));
+      l = (unsigned short)strlen((char*)value);
+      binaryio_write_uint16(bio_writer, cwh, l);
+      binaryio_write_bytes(bio_writer, cwh, (unsigned char*)value, l);
       break;
   }
 }
 
-void cos_write_observation(struct coswrite_handle* cwh, unsigned char observation_type, unsigned short observation_id, void* timestamp, void* value)
+void cos_write_observation(struct coswrite_handle* cwh, unsigned char* observation_type, unsigned short* observation_id, void* timestamp, void* value)
 {
   if (cwh->header_flags & COS_HEADER_MULTI_OBSERVATIONS)
   {
-    unsigned short obs_descr = get_observation_descriptor(observation_type, observation_id);
+    unsigned short obs_descr = get_observation_descriptor(*observation_type, *observation_id);
     binaryio_write_uint16(bio_writer, cwh, obs_descr);
   }
 
@@ -146,10 +183,17 @@ void cos_write_observation(struct coswrite_handle* cwh, unsigned char observatio
     }
   }
   
-  cos_write_observation_value(cwh, observation_type, value);
+  if (cwh->header_flags & COS_HEADER_MULTI_OBSERVATIONS)
+  {
+    cos_write_observation_value(cwh, *observation_type, value);
+  }
+  else
+  {
+    cos_write_observation_value(cwh, cwh->section_observation_type, value);
+  }
 }
 
-void cos_add_observation(struct coswrite_handle* cwh, unsigned char observation_type, unsigned short observation_id, void* timestamp, void* value)
+void cos_add_observation(struct coswrite_handle* cwh, unsigned char* observation_type, unsigned short* observation_id, void* timestamp, void* value)
 {
   cwh->section_observation_count++;
 

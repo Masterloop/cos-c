@@ -37,7 +37,7 @@ sections        COS Section  // Observation data sections multiplied by "section
 observation_descr   Observation Descriptor  // Present only if flag 0x20 is not set.
 timestamp_abs       uint32 | int64          // Data type depends on header flag 0x80.
 observations_count  uint16                  // Number of observations in section.
-observations        COS Observation         // Repeated observations_count times
+observations        COS Observation         // Repeated observations_count times.
 
 ### COS Observation
 observation_descr  Observation Descriptor  // Present only if header flag 0x20 is set.
@@ -48,10 +48,10 @@ value              ObservationType         // Data type depends on "observation_
 
 Serialized as a 16 bit unsigned short.
 
-Bits 15-12: observation_type  // Numeric value according to "Observation Type" table below.
+Bits 15-12: observation_type  // Numeric value according to "Observation Types" table below.
 Bits 11-0:  observation_id    // Observation identifier (max id: 4095).
 
-#### Observation Type
+#### Observation Types
 1   boolean
 2   double
 3   float
@@ -60,10 +60,52 @@ Bits 11-0:  observation_id    // Observation identifier (max id: 4095).
 6   uint16
 7   int8
 8   uint8
-9   position 2d
-10  position 3d
-11  ascii string
+9   position2d
+10  position3d
+11  ascii
+(12  byte array)
 
+#### Provision of Observation Value
+
+##### boolean
+Provided as unsigned char, 0 = false, 1 = true.
+
+##### double
+Provided as native double type.
+
+##### float
+Provided as native float type.
+
+##### int32
+Provided as native signed int.
+
+##### int16
+Provided as native signed short.
+
+##### uint16
+Provided as native unsigned short.
+
+##### int8
+Provided as native signed char.
+
+##### uint8
+Provided as native unsigned char.
+
+##### position2d
+Structure consisting of the following elements:
+- Latitude provided as native float (decimal degrees in WGS84 datum).
+- Longitude provided as native float (decimal degrees in WGS84 datum).
+
+##### position3d
+Structure consisting of the following elements:
+- Latitude provided as native float (decimal degrees in WGS84 datum).
+- Longitude provided as native float (decimal degrees in WGS84 datum).
+- Altitude provided as native float (meters in WGS84 datum).
+
+##### ascii
+Structure consisting of the following elements:
+- Length of string provided as unsigned short.
+- Char array provided as char[].
 
 ## Examples of use
 
