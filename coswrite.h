@@ -91,9 +91,7 @@ void cos_add_observation(struct coswrite_handle* cwh, unsigned char* observation
  * @brief Ends a Compact Observation Scheme section.
  * 
  * Updates dataset and section headers with counters.
- * 
  * IMPORTANT: It is essential to call this function before starting a new section or exporting the dataset.
- * 
  * @param cwh   Pointer to a coswrite_handle object, having an active section created by "cos_begin_section(..)".
  */
 void cos_end_section(struct coswrite_handle* cwh);

@@ -89,7 +89,8 @@ void example_multi_observation_single_timestamp(unsigned char* buffer, unsigned 
   printf(" > End Section\n");
   cos_end_section(&handle);
 
-  printf("Size of COS buffer: %d\n\n", handle.buffer_used);}
+  printf("Size of COS buffer: %d\n\n", handle.buffer_used);
+}
 
 void example_single_observation_multi_timestamp(unsigned char* buffer, unsigned int buffer_size)
 {
