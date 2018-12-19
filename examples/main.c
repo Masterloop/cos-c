@@ -25,19 +25,64 @@
  */
 
 #include <stdio.h>
+#include <memory.h>
+#include "base64.h"
 #include "examples.h"
+
+void write_binary(const char* filename, uint8_t* data, size_t size)
+{
+  FILE* f = fopen(filename, "wb");
+  fwrite(data, size, 1, f);
+  fclose(f);
+}
 
 int main()
 {
-  const int BUFFER_SIZE = 50000;
-  unsigned char buffer[BUFFER_SIZE];
+  const size_t BUFFER_SIZE = 10000;
+  const size_t BUFFER_SIZE_B64 = (4 * (BUFFER_SIZE + 2)) / 3;
+  uint8_t buffer[BUFFER_SIZE];
+  size_t buffer_used;
+  uint8_t buffer_b64[BUFFER_SIZE_B64];
+  size_t buffer_used_b64;
 
   printf("Compact Observation Scheme Writer Examples\n");
 
-  example_single_observation(buffer, BUFFER_SIZE);
-  example_multi_observation_single_timestamp(buffer, BUFFER_SIZE);
-  example_single_observation_multi_timestamp(buffer, BUFFER_SIZE);
-  example_multi_observation_multi_timestamp(buffer, BUFFER_SIZE);
+  buffer_used = example_single_observation_single_timestamp(buffer, BUFFER_SIZE);
+  write_binary("single_observation_single_timestamp.cos", buffer, buffer_used);
+  memset(buffer_b64, 0, BUFFER_SIZE_B64);
+  buffer_used_b64 = base64_encode(buffer_b64, buffer, buffer_used);
+  write_binary("single_observation_single_timestamp.b64", buffer_b64, buffer_used_b64);
+  printf("%s\n", buffer_b64);
+
+  buffer_used = example_multi_observation_single_timestamp(buffer, BUFFER_SIZE);
+  write_binary("multi_observation_single_timestamp.cos", buffer, buffer_used);
+  memset(buffer_b64, 0, BUFFER_SIZE_B64);
+  buffer_used_b64 = base64_encode(buffer_b64, buffer, buffer_used);
+  write_binary("multi_observation_single_timestamp.b64", buffer_b64, buffer_used_b64);
+  printf("%s\n", buffer_b64);
+
+  buffer_used = example_single_observation_multi_timestamp(buffer, BUFFER_SIZE);
+  write_binary("single_observation_multi_timestamp.cos", buffer, buffer_used);
+  memset(buffer_b64, 0, BUFFER_SIZE_B64);
+  buffer_used_b64 = base64_encode(buffer_b64, buffer, buffer_used);
+  write_binary("single_observation_multi_timestamp.b64", buffer_b64, buffer_used_b64);
+  printf("%s\n", buffer_b64);
+
+  buffer_used = example_multi_observation_multi_timestamp(buffer, BUFFER_SIZE);
+  write_binary("multi_observation_multi_timestamp.cos", buffer, buffer_used);
+  memset(buffer_b64, 0, BUFFER_SIZE_B64);
+  buffer_used_b64 = base64_encode(buffer_b64, buffer, buffer_used);
+  write_binary("multi_observation_multi_timestamp.b64", buffer_b64, buffer_used_b64);
+  printf("%s\n", buffer_b64);
+
+  buffer_used = example_multi_observation_multi_timestamp_multi_types(buffer, BUFFER_SIZE);
+  write_binary("example_multi_observation_multi_timestamp_multi_types.cos", buffer, buffer_used);
+  memset(buffer_b64, 0, BUFFER_SIZE_B64);
+  buffer_used_b64 = base64_encode(buffer_b64, buffer, buffer_used);
+  write_binary("example_multi_observation_multi_timestamp_multi_types.b64", buffer_b64, buffer_used_b64);
+  printf("%s\n", buffer_b64);
+
+  printf("Examples Completed.\n");
 
   return 0;
 }

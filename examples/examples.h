@@ -26,10 +26,13 @@
 
 #ifndef EXAMPLES_H
 
-void example_single_observation(unsigned char* buffer, unsigned int buffer_size);
-void example_multi_observation_single_timestamp(unsigned char* buffer, unsigned int buffer_size);
-void example_single_observation_multi_timestamp(unsigned char* buffer, unsigned int buffer_size);
-void example_multi_observation_multi_timestamp(unsigned char* buffer, unsigned int buffer_size);
+#include <stdlib.h>
+
+size_t example_single_observation_single_timestamp(uint8_t* buffer, size_t buffer_size);
+size_t example_multi_observation_single_timestamp(uint8_t* buffer, size_t buffer_size);
+size_t example_single_observation_multi_timestamp(uint8_t* buffer, size_t buffer_size);
+size_t example_multi_observation_multi_timestamp(uint8_t* buffer, size_t buffer_size);
+size_t example_multi_observation_multi_timestamp_multi_types(uint8_t* buffer, size_t buffer_size);
 
 #define EXAMPLES_H
 #endif

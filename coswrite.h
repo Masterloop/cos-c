@@ -24,9 +24,9 @@
  * DEALINGS IN THE SOFTWARE. 
  */
 
-#include <stdint.h>
-
 #ifndef COSWRITE_H
+
+#include <stdlib.h>
 
 /**
  * @brief A structure to keep the state of a Compact Observation Scheme dataset during writing.
@@ -34,10 +34,10 @@
 struct coswrite_handle
 {
   unsigned char   header_flags;   /**< Header flags. */
-  unsigned char*  buffer;         /**< Data buffer. */
-  unsigned int    buffer_size;    /**< Max size of data buffer. */
-  unsigned int    buffer_pos;     /**< Current writing position in buffer. */
-  unsigned int    buffer_used;    /**< Number of used bytes in data buffer. */
+  uint8_t*        buffer;         /**< Data buffer. */
+  size_t          buffer_size;    /**< Max size of data buffer. */
+  size_t          buffer_pos;     /**< Current writing position in buffer. */
+  size_t          buffer_used;    /**< Number of used bytes in data buffer. */
   unsigned short  section_count;  /**< Number of sections in dataset. */
 
   unsigned int    section_start;              /**< Start byte position in buffer for active section or 0 if no active section. */
@@ -55,10 +55,10 @@ struct coswrite_handle
  * 
  * @param cwh             Pointer to a coswrite_handle object used throughout the dataset creation.
  * @param header_flags    Option flags OR-ed using flags specified within the "cos.h" definition file.
- * @param buffer          Pointer to an array of unsigned chars.
+ * @param buffer          Pointer to an array of bytes.
  * @param buffer_size     Size of buffer byte array.
  */
-void cos_init(struct coswrite_handle* cwh, unsigned char header_flags, unsigned char* buffer, unsigned int buffer_size);
+void cos_init(struct coswrite_handle* cwh, unsigned char header_flags, uint8_t* buffer, size_t buffer_size);
 
 /**
  * @brief Begins a new Compact Observation Scheme section.

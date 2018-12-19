@@ -56,7 +56,7 @@ void cos_write_header(struct coswrite_handle* cwh)
   binaryio_write_uint16(bio_writer, cwh, cwh->section_count);
 }
 
-void cos_init(struct coswrite_handle* cwh, unsigned char header_flags, unsigned char* buffer, unsigned int buffer_size)
+void cos_init(struct coswrite_handle* cwh, unsigned char header_flags, uint8_t* buffer, size_t buffer_size)
 {
   memset(buffer, 0, buffer_size);
 

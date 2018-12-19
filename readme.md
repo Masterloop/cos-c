@@ -125,3 +125,6 @@ Structure consisting of the following elements:
 
 #### Observations of multiple data types with multiple timestamps
 [Example provided in example.c](examples/examples.c).
+
+#### Observations of multiple data types with multiple timestamps and multiple data types
+[Example provided in example.c](examples/examples.c).
