@@ -27,6 +27,7 @@
 #ifndef COSWRITE_H
 
 #include <stdlib.h>
+#include <stdint.h>
 
 /**
  * @brief A structure to keep the state of a Compact Observation Scheme dataset during writing.
