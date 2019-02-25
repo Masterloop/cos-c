@@ -25,6 +25,7 @@
  */
 
 #include <memory.h>
+#include <stdint.h>
 #include "binaryio.h"
 
 unsigned char is_little_endian()
