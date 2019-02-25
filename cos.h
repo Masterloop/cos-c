@@ -45,6 +45,7 @@
 #define COS_OBS_TYPE_POSITION_2D  9
 #define COS_OBS_TYPE_POSITION_3D  10
 #define COS_OBS_TYPE_ASCII        11
+#define COS_OBS_TYPE_UTF8         12
 
 #define COS_H
 #endif

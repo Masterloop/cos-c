@@ -175,7 +175,8 @@ size_t example_multi_observation_multi_timestamp_multi_types(uint8_t* buffer, si
   // Test data
   unsigned short observation_count = 10;
   unsigned char obs_type;
-  unsigned int timestamp = (unsigned int) time(NULL);
+  time_t timestamp;
+  time(&timestamp);
 
   // Reserve space for objects on stack.
   struct coswrite_handle handle;
@@ -261,6 +262,12 @@ size_t example_multi_observation_multi_timestamp_multi_types(uint8_t* buffer, si
   char* v_ascii = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
   t = timestamp - 1;
   cos_add_observation(&handle, &obs_type, &obs_id, &t, v_ascii);
+
+  obs_type = COS_OBS_TYPE_UTF8;
+  obs_id = 6;
+  char* v_utf8 = "\xc3\x98yvind the Viking";
+  t = timestamp - 1;
+  cos_add_observation(&handle, &obs_type, &obs_id, &t, v_utf8);
 
   printf(" > End Section\n");
   cos_end_section(&handle);

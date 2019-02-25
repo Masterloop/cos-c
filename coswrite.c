@@ -158,6 +158,11 @@ void cos_write_observation_value(struct coswrite_handle* cwh, unsigned observati
       binaryio_write_uint16(bio_writer, cwh, l);
       binaryio_write_bytes(bio_writer, cwh, (unsigned char*)value, l);
       break;
+    case COS_OBS_TYPE_UTF8:
+      l = (unsigned short)strlen((char*)value);
+      binaryio_write_uint16(bio_writer, cwh, l);
+      binaryio_write_bytes(bio_writer, cwh, (unsigned char*)value, l);
+      break;
   }
 }
 
