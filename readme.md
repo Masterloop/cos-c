@@ -69,6 +69,7 @@ Bits 11-0:  observation_id    // Observation identifier (max id: 4095).
 9.  position2d
 10. position3d
 11. ascii
+12. utf8
 
 #### Provision of Observation Value
 
@@ -111,6 +112,11 @@ Structure consisting of the following elements:
 Structure consisting of the following elements:
 - Length of string provided as unsigned short.
 - Char array provided as char[].
+
+##### utf8
+Structure consisting of the following elements:
+- Length of string provided as unsigned short.
+- Char array provided as unsigned char[] with UTF8 encoding.
 
 ## Examples of use
 
